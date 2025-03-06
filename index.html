@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Secure text encoding and decoding tool">
+    <title>Advanced Encoder & Decoder</title>
+    <style>
+        :root {
+            --bg-color: rgba(10, 10, 25, 0.7);
+            --text-color: #ffffff;
+            --box-color: rgba(255, 255, 255, 0.1);
+            --highlight: #00d4ff;
+            --shadow-color: rgba(255, 255, 255, 0.2);
+            --error-color: #ff4444;
+            --success-color: #00cc00;
+        }
+        body.light-mode {
+            --bg-color: rgba(240, 240, 245, 0.7);
+            --text-color: #1a1a1a;
+            --box-color: rgba(0, 0, 0, 0.05);
+            --highlight: #0066ff;
+            --shadow-color: rgba(0, 0, 0, 0.15);
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--box-color);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px var(--shadow-color);
+            animation: slideIn 0.5s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h2 {
+            color: var(--highlight);
+            margin-bottom: 25px;
+            font-size: 2rem;
+            text-shadow: 0 2px 4px var(--shadow-color);
+        }
+        
+        /* Enhanced Inputs */
+        .input-group {
+            margin: 15px 0;
+            position: relative;
+        }
+        textarea, input, select {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border-color: var(--highlight);
+            box-shadow: 0 0 8px var(--highlight);
+        }
+        textarea { 
+            height: 120px; 
+            resize: vertical;
+        }
+        
+        /* Buttons */
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            flex: 1;
+            min-width: 120px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow-color);
+        }
+        .encode { background: #00cc66; }
+        .decode { background: #0066ff; }
+        .copy { background: #ff9900; }
+        .download { background: #9933ff; }
+        .theme-toggle { background: var(--highlight); }
+        .clear { background: #ff4444; }
+
+        /* Result & Status */
+        .result {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            word-wrap: break-word;
+            transition: all 0.5s ease;
+            position: relative;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        .status.success { 
+            background: var(--success-color); 
+            display: block;
+        }
+        .status.error { 
+            background: var(--error-color); 
+            display: block;
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in forwards;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            button { flex: 1 1 45%; }
+        }
+        @media (max-width: 480px) {
+            .container { padding: 15px; }
+            button { flex: 1 1 100%; }
+            h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Advanced Encoder & Decoder</h2>
+
+        <div class="input-group">
+            <select id="encodeMode">
+                <option value="caesar">Caesar Cipher</option>
+                <option value="reverse">Reverse Text</option>
+                <option value="base64">Base64</option>
+                <option value="rot13">ROT13</option>
+                <option value="hex">Hexadecimal</option>
+                <option value="binary">Binary</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <textarea id="textInput" placeholder="Enter text to encode/decode..." spellcheck="false"></textarea>
+        </div>
+
+        <div class="input-group">
+            <input type="number" id="shiftValue" placeholder="Shift Value (for Caesar)" min="1" max="25">
+            <input type="checkbox" id="preserveCase" checked> <label for="preserveCase">Preserve Case</label>
+        </div>
+
+        <div class="button-group">
+            <button class="encode" onclick="encodeText()">Encode</button>
+            <button class="decode" onclick="decodeText()">Decode</button>
+            <button class="copy" onclick="copyToClipboard()">Copy</button>
+            <button class="download" onclick="downloadText()">Download</button>
+            <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+            <button class="clear" onclick="clearAll()">Clear</button>
+        </div>
+
+        <div class="status" id="status"></div>
+        <div class="result" id="output">Result will appear here...</div>
+    </div>
+
+    <script>
+        // Security: Input sanitization
+        function sanitizeInput(input) {
+            return input.replace(/[<>&"']/g, '');
+        }
+
+        // Enhanced encoding/decoding functions
+        function shiftChar(char, shift, preserveCase) {
+            if (!char.match(/[a-zA-Z]/)) return char;
+            const isUpper = char === char.toUpperCase();
+            char = char.toLowerCase();
+            const base = 97;
+            let result = String.fromCharCode(((char.charCodeAt(0) - base + shift + 26) % 26) + base);
+            return preserveCase && isUpper ? result.toUpperCase() : result;
+        }
+
+        function transformText(input, shift, preserveCase) {
+            return input.split('').map(char => shiftChar(char, shift, preserveCase)).join('');
+        }
+
+        function toBinary(input) {
+            return input.split('').map(char => char.charCodeAt(0).toString(2).padStart(8, '0')).join(' ');
+        }
+
+        function fromBinary(input) {
+            try {
+                return input.split(' ').map(bin => String.fromCharCode(parseInt(bin, 2))).join('');
+            } catch {
+                return "Invalid binary format!";
+            }
+        }
+
+        function animateResult(text) {
+            const output = document.getElementById('output');
+            output.textContent = text;
+            output.classList.add('fade-in');
+            setTimeout(() => output.classList.remove('fade-in'), 500);
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            setTimeout(() => status.className = 'status', 3000);
+        }
+
+        function encodeText() {
+            let text = sanitizeInput(document.getElementById('textInput').value);
+            if (!text) return showStatus('Please enter text!', 'error');
+            
+            let shift = parseInt(document.getElementById('shiftValue').value) || 3;
+            let mode = document.getElementById('encodeMode').value;
+            let preserveCase = document.getElementById('preserveCase').checked;
+            let result = '';
+
+            switch (mode) {
+                case 'caesar':
+                    result = transformText(text, shift, preserveCase);
+                    break;
+                case 'reverse':
+                    result = text.split('').reverse().join('');
+                    break;
+                case 'base64':
+                    result = btoa(unescape(encodeURIComponent(text)));
+                    break;
+                case 'rot13':
+                    result = transformText(text, 13, preserveCase);
+                    break;
+                case 'hex':
+                    result = Array.from(text).map(c => c.charCodeAt(0).toString(16)).join(' ');
+                    break;
+                case 'binary':
+                    result = toBinary(text);
+                    break;
+            }
+            animateResult('Encoded: ' + result);
+        }
+
+        function decodeText() {
+            let text = sanitizeInput(document.getElementById('textInput').value);
+            if (!text) return showStatus('Please enter text!', 'error');
+            
+            let shift = parseInt(document.getElementById('shiftValue').value) || 3;
+            let mode = document.getElementById('encodeMode').value;
+            let preserveCase = document.getElementById('preserveCase').checked;
+            let result = '';
+
+            switch (mode) {
+                case 'caesar':
+                    result = transformText(text, -shift, preserveCase);
+                    break;
+                case 'reverse':
+                    result = text.split('').reverse().join('');
+                    break;
+                case 'base64':
+                    try {
+                        result = decodeURIComponent(escape(atob(text)));
+                    } catch {
+                        result = 'Invalid Base64 format!';
+                    }
+                    break;
+                case 'rot13':
+                    result = transformText(text, 13, preserveCase);
+                    break;
+                case 'hex':
+                    try {
+                        result = text.split(' ').map(hex => String.fromCharCode(parseInt(hex, 16))).join('');
+                    } catch {
+                        result = 'Invalid hex format!';
+                    }
+                    break;
+                case 'binary':
+                    result = fromBinary(text);
+                    break;
+            }
+            animateResult('Decoded: ' + result);
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('output').textContent.replace(/^(Encoded|Decoded): /, '');
+            if (!text || text === 'Result will appear here...') return showStatus('Nothing to copy!', 'error');
+            navigator.clipboard.writeText(text);
+            showStatus('Copied to clipboard!', 'success');
+        }
+
+        function downloadText() {
+            const text = document.getElementById('output').textContent.replace(/^(Encoded|Decoded): /, '');
+            if (!text || text === 'Result will appear here...') return showStatus('Nothing to download!', 'error');
+            const blob = new Blob([text], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${document.getElementById('encodeMode').value}_output.txt`;
+            a.click();
+            showStatus('Download started!', 'success');
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            showStatus('Theme switched!', 'success');
+        }
+
+        function clearAll() {
+            document.getElementById('textInput').value = '';
+            document.getElementById('shiftValue').value = '';
+            animateResult('Result will appear here...');
+            showStatus('Cleared!', 'success');
+        }
+
+        // Prevent XSS
+        document.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            document.getElementById('textInput').value += sanitizeInput(text);
+        });
+    </script>
+</body>
+</html>
